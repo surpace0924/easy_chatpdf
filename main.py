@@ -1,3 +1,5 @@
+import os
+import pandas as pd
 import argparse
 import chatpdf_api_python.chatpdf_api_python.main as chatpdf
 
@@ -7,7 +9,12 @@ def main():
     parser.add_argument('-k', '--api_key', type=str)
     parser.add_argument('-p', '--filepath', type=str)
     args = parser.parse_args()
-    
+
+    questions_path = os.path.join('.', 'questions.csv')
+    df_questions = pd.read_csv(questions_path, header=None)
+    question_list = df_questions[0].values.tolist()
+    # print(question_list)
+
     chatpdf.API_KEY = args.api_key
 
     file_path_list = [
@@ -15,13 +22,15 @@ def main():
     ]
 
     source_id = chatpdf.upload_files(file_path_list)
-
-    messages = [
-        { 'role': 'user', 'content': 'この論文の主張は何？' }
-    ]
-    reference_sources = True
-    response = chatpdf.chat(source_id, messages, reference_sources=reference_sources)
-    print(response)
+    for question in question_list:
+        question = '日本語で答えてください．'+question
+        messages = [
+            { 'role': 'user', 'content': question}
+        ]
+        reference_sources = True
+        response = chatpdf.chat(source_id, messages, reference_sources=reference_sources)
+        print(response)
+        print()
 
 
 if __name__ == "__main__":
